@@ -1,38 +1,46 @@
 'use client'
+import { useEffect, useState } from "react";
 import Image, { StaticImageData } from "next/image";
-import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Products } from "@/components/Products";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  const product = Products.find((p) => p.id === Number(id));
-
+  const [product, setProduct] = useState<any>(null);  // To store product data
   const [selectedSize, setSelectedSize] = useState("Select a size");
   const [selectedColor, setSelectedColor] = useState("Select a color");
-  const [mainImage, setMainImage] = useState<string | StaticImageData>(
-    product?.images[0] ?? "/placeholder.jpg"
-  );
+  const [mainImage, setMainImage] = useState<string | StaticImageData>("/placeholder.jpg");
+
+  // Fetch product data based on the id
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const response = await fetch(`/api/products?id=${id}`);
+      const data = await response.json();
+      setProduct(data);
+      setMainImage(data?.images[0]?.url ?? "/placeholder.jpg");
+    };
+
+    fetchProduct();
+  }, [id]);
+
   if (!product) return <div className="text-white text-center">Product not found</div>;
 
   return (
     <div className="pt-10">
       <div className="min-h-screen pt-20 bg-gray-900 text-white p-8 flex flex-col md:flex-row gap-10">
-        
         {/* Left Section - Images */}
         <div className="w-full md:w-1/2 flex flex-col items-center">
-        {mainImage && (
-  <Image 
-    src={mainImage} 
-    alt={product.name} 
-    width={500} 
-    height={600} 
-    className="rounded-lg transition-all duration-300"
-  />
-)}
+          {mainImage && (
+            <Image 
+              src={mainImage} 
+              alt={product.name} 
+              width={500} 
+              height={600} 
+              className="rounded-lg transition-all duration-300"
+            />
+          )}
           {/* Thumbnails */}
           <div className="flex gap-2 mt-4">
-            {product.images.map((img, index) => (
+            {product.images.map((img: string, index: number) => (
               <Image 
                 key={index} 
                 src={img} 
